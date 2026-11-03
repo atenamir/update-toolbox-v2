@@ -2,20 +2,26 @@ package cmd
 
 import "github.com/spf13/cobra"
 
-// ==========rootCmd is the main command of Update Toolbox ===========
-var rootCmd = &cobra.Command{
-	Use:   "update-toolbox",
-	Short: "Secure software update and recovery toolkit",
-	Long: `Update Toolbox V2 is a CLI application
-          for generating update packages, validating
-          deployments, applying updates, and recovering
-          from failed update operations.`,
-	// --- Error handling settings ---
-	SilenceErrors: true,
-	SilenceUsage:  true,
+// ===================== newRootCmd creates the root command=======================
+func newRootCmd() *cobra.Command {
+	rootCmd := &cobra.Command{
+		Use:   "update-toolbox",
+		Short: "Secure software update and recovery toolkit",
+		Long: `Update Toolbox V2 is a CLI application
+for generating update packages, validating
+deployments, applying updates, and recovering
+from failed update operations.`,
+
+		//--- Error handling settings ---
+		SilenceErrors: true,
+		SilenceUsage:  true,
+	}
+
+	rootCmd.AddCommand(newVersionCmd())
+	return rootCmd
 }
 
-// =========  Execute runs the root command and its subcommands ===========
+// ====================== Execute builds and runs the CLI =======================
 func Execute() error {
-	return rootCmd.Execute()
+	return newRootCmd().Execute()
 }
