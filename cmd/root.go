@@ -18,6 +18,7 @@ from failed update operations.`,
 	}
 
 	rootCmd.AddCommand(newVersionCmd())
+	rootCmd.AddCommand(newPatchCmd())
 	return rootCmd
 }
 
