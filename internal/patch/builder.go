@@ -17,6 +17,7 @@ type PatchManifest struct {
 type PatchFile struct {
 	Path   string `json:"path"`
 	Status string `json:"status"`
+	SHA256 string `json:"sha256,omitempty"`
 }
 
 func BuildPatchManifest(
@@ -39,6 +40,49 @@ func BuildPatchManifest(
 	}
 
 	return manifest
+}
+
+func BuildPatchManifestWithHashes(
+	repoPath string,
+	fromVersion string,
+	toVersion string,
+	changedFiles []ChangedFile,
+) (PatchManifest, error) {
+
+	manifest := BuildPatchManifest(
+		fromVersion,
+		toVersion,
+		changedFiles,
+	)
+
+	for i := range manifest.Files {
+		file := &manifest.Files[i]
+
+		switch file.Status {
+		case "A", "M":
+			data, err := GetFileAtTag(
+				repoPath,
+				toVersion,
+				file.Path,
+			)
+			if err != nil {
+				return PatchManifest{}, err
+			}
+
+			file.SHA256 = CalculateSHA256(data)
+
+		case "D":
+			//========== Deleted files have no target content =================
+
+		default:
+			return PatchManifest{}, fmt.Errorf(
+				"unsupported file status %q",
+				file.Status,
+			)
+		}
+	}
+
+	return manifest, nil
 }
 
 func WritePatchManifest(

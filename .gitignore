@@ -31,3 +31,7 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+/patch-*.tar.gz
+/patch.tar.gz
+/package-lab.json
+/.patch-*.tmp

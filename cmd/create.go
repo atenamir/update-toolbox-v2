@@ -46,12 +46,15 @@ func newCreateCmd() *cobra.Command {
 			}
 
 			// 5. Build the patch manifest.
-			patchManifest := patch.BuildPatchManifest(
+			patchManifest, err := patch.BuildPatchManifestWithHashes(
+				repoPath,
 				fromTag,
 				toTag,
 				changedFiles,
 			)
-
+			if err != nil {
+				return err
+			}
 			// 6. Create the TAR.GZ archive.
 			if _, err := os.Stat(outputPath); err == nil {
 				return fmt.Errorf("output file already exists: %s", outputPath)

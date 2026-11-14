@@ -12,7 +12,7 @@ func CreatePatchArchiveSafe(
 	outputPath string,
 ) error {
 
-	// ================== Create a temporary file in the output directory ===========================
+	//================== Create a temporary file in the output directory =================
 	outputDir := filepath.Dir(outputPath)
 
 	tempFile, err := os.CreateTemp(outputDir, ".patch-*.tmp")
@@ -22,29 +22,45 @@ func CreatePatchArchiveSafe(
 
 	tempPath := tempFile.Name()
 
-	if err := tempFile.Close(); err != nil {
-		os.Remove(tempPath)
-		return err
-	}
-
-	//====================== Remove temporary file on failure ===================
+	//========== Always remove the temporary file when finished =================
 	defer os.Remove(tempPath)
 
-	// ================= Build the archive into the temporary path =====================
-	if err := CreatePatchArchive(manifest, repoPath, tempPath); err != nil {
-		return err
+	if err := tempFile.Close(); err != nil {
+		return fmt.Errorf("close temporary file: %w", err)
 	}
 
-	// ================ Check whether the final output already exists ===================
-	if _, err := os.Stat(outputPath); err == nil {
-		return fmt.Errorf("output already exists: %s", outputPath)
-	} else if !os.IsNotExist(err) {
-		return err
+	//================== Build the archive in the temporary file ==================
+	if err := CreatePatchArchive(
+		manifest,
+		repoPath,
+		tempPath,
+	); err != nil {
+		return fmt.Errorf("build patch archive: %w", err)
 	}
 
-	// ============== Rename the completed archive=====================
-	if err := os.Rename(tempPath, outputPath); err != nil {
-		return fmt.Errorf("finalize patch archive: %w", err)
+	//=============== Verify the completed archive before publishing ========================
+	if err := VerifyPatchArchive(tempPath); err != nil {
+		return fmt.Errorf("verify generated patch: %w", err)
+	}
+
+	//================ Flush completed file data before publishing =====================
+	completedFile, err := os.OpenFile(tempPath, os.O_RDWR, 0)
+	if err != nil {
+		return fmt.Errorf("open completed patch: %w", err)
+	}
+
+	if err := completedFile.Sync(); err != nil {
+		completedFile.Close()
+		return fmt.Errorf("sync patch archive: %w", err)
+	}
+
+	if err := completedFile.Close(); err != nil {
+		return fmt.Errorf("close completed patch: %w", err)
+	}
+
+	//============= Publish without replacing an existing output file =========
+	if err := os.Link(tempPath, outputPath); err != nil {
+		return fmt.Errorf("publish patch archive: %w", err)
 	}
 
 	return nil

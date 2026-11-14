@@ -11,6 +11,7 @@ func newPatchCmd() *cobra.Command {
 Available operations include creating and verifying update packages.`,
 	}
 	patchCmd.AddCommand(newCreateCmd())
+	patchCmd.AddCommand(newVerifyCmd())
 
 	return patchCmd
 }
