@@ -17,6 +17,11 @@ func TestVerifyPatchArchive_RejectsSHA256Mismatch(t *testing.T) {
 		ToVersion:   "v1.1.0",
 		Files: []PatchFile{
 			{
+				Path:   "app/NewService.php",
+				Status: "A",
+				SHA256: CalculateSHA256([]byte("New Service")),
+			},
+			{
 				Path:   "app/User.php",
 				Status: "M",
 				SHA256: CalculateSHA256([]byte("Version 2")),
@@ -34,6 +39,9 @@ func TestVerifyPatchArchive_RejectsSHA256Mismatch(t *testing.T) {
 	tw := tar.NewWriter(gz)
 
 	if err := writeTarEntry(tw, "manifest.json", manifestData); err != nil {
+		t.Fatal(err)
+	}
+	if err := writeTarEntry(tw, "files/app/NewService.php", []byte("New Service")); err != nil {
 		t.Fatal(err)
 	}
 	if err := writeTarEntry(tw, "files/app/User.php", []byte("Version 3")); err != nil {
