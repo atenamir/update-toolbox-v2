@@ -12,6 +12,7 @@ Available operations include creating and verifying update packages.`,
 	}
 	patchCmd.AddCommand(newCreateCmd())
 	patchCmd.AddCommand(newVerifyCmd())
+	patchCmd.AddCommand(newPreflightCmd())
 
 	return patchCmd
 }
