@@ -17,12 +17,7 @@ func newVerifyCmd() *cobra.Command {
 			if err := patch.VerifyPatchArchive(args[0]); err != nil {
 				return err
 			}
-
-			fmt.Fprintln(
-				cmd.OutOrStdout(),
-				"Patch verification passed",
-			)
-
+         	fmt.Fprintln(cmd.OutOrStdout(), "Patch verification passed")
 			return nil
 		},
 	}
